@@ -13,11 +13,11 @@ model Expenses {
   amount   Float
   categoryId Int
   category   Categories @relation(fields: [categoryId], references: [id])
-  createdAt Boolean @default(false) 
+  createdAt DateTime @default(now())
 } 
 
 model Categories { 
-  id        Int     @id @default(autoincrement()) 
+  id        Int     @id @default(autoincrement())
   name     String
 
   expenses Expenses[]
