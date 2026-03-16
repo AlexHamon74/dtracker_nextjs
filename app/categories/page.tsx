@@ -64,8 +64,16 @@ export default function CategoriesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName.trim() }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+
+      const contentType = res.headers.get("content-type") ?? "";
+      const data = contentType.includes("application/json")
+        ? await res.json()
+        : null;
+
+      if (!res.ok) {
+        throw new Error(data?.error ?? `Erreur (${res.status})`);
+      }
+
       setNewName("");
       await fetchCategories();
       showSuccess("Catégorie créée avec succès !");
