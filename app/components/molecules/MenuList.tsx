@@ -1,16 +1,29 @@
+"use client";
+
 import React from "react";
 import MenuItem from "../atoms/MenuItem";
 
-type Props = {
-  children: { id: string; name: string }[];
-  onClick: () => void;
+export type MenuItemConfig = {
+  id: string;
+  name: string;
+  href?: string;
 };
-const MenuList = ({ children, onClick }: Props) => {
+
+type Props = {
+  items: MenuItemConfig[];
+  onItemClick?: (id: string) => void;
+};
+
+const MenuList = ({ items, onItemClick }: Props) => {
   return (
-    <ul className="flex items-center gap-2">
-      {children.map((child) => (
-        <MenuItem key={child.id} onClick={onClick}>
-          {child.name}
+    <ul className="flex items-center gap-6">
+      {items.map((item) => (
+        <MenuItem
+          key={item.id}
+          href={item.href}
+          onClick={onItemClick ? () => onItemClick(item.id) : undefined}
+        >
+          {item.name}
         </MenuItem>
       ))}
     </ul>

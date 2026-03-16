@@ -7,7 +7,9 @@ function jsonError(message: string, status = 500) {
 
 export async function GET() {
   try {
-    const categories = await prisma.categories.findMany();
+    const categories = await prisma.categories.findMany({
+      include: { _count: { select: { expenses: true } } },
+    });
     return NextResponse.json(categories);
   } catch (error) {
     console.error("GET /api/categories error", error);
