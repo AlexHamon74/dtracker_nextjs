@@ -1,9 +1,9 @@
-import Image from "next/image";
+import MyLineChart from "./components/chart/MyLineChart";
 
 export default function Home() {
   return (
     <div>
-      <h1>Hello World</h1>
+      <MyLineChart />
     </div>
   );
 }
