@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Button from "../components/atoms/Button";
+import Input from "../components/atoms/Input";
+import Alert from "../components/atoms/Alert";
+import Card from "../components/molecules/Card";
 
 type Category = {
   id: number;
@@ -14,16 +18,22 @@ export default function CategoriesPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Form state
+  // Create category form
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
 
-  // Edit state
+  // Create expense form
+  const [expenseName, setExpenseName] = useState("");
+  const [expenseAmount, setExpenseAmount] = useState("");
+  const [expenseCategoryId, setExpenseCategoryId] = useState<number | "">("");
+  const [creatingExpense, setCreatingExpense] = useState(false);
+
+  // Edit category
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [updating, setUpdating] = useState(false);
 
-  // Delete state
+  // Delete
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const showSuccess = (msg: string) => {
@@ -43,8 +53,11 @@ export default function CategoriesPage() {
       if (!res.ok) throw new Error("Erreur lors du chargement");
       const data = await res.json();
       setCategories(data);
-    } catch (err: any) {
-      showError(err.message);
+      if (data.length > 0 && expenseCategoryId === "") {
+        setExpenseCategoryId(data[0].id);
+      }
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
       setLoading(false);
     }
@@ -54,7 +67,7 @@ export default function CategoriesPage() {
     fetchCategories();
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
     setCreating(true);
@@ -64,23 +77,49 @@ export default function CategoriesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName.trim() }),
       });
-
       const contentType = res.headers.get("content-type") ?? "";
       const data = contentType.includes("application/json")
         ? await res.json()
         : null;
-
       if (!res.ok) {
         throw new Error(data?.error ?? `Erreur (${res.status})`);
       }
-
       setNewName("");
       await fetchCategories();
       showSuccess("Catégorie créée avec succès !");
-    } catch (err: any) {
-      showError(err.message);
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleCreateExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = expenseName.trim();
+    const amount = Number(expenseAmount);
+    const categoryId = expenseCategoryId === "" ? 0 : expenseCategoryId;
+    if (!name || Number.isNaN(amount) || amount < 0 || !categoryId) {
+      showError("Nom, montant positif et catégorie requis.");
+      return;
+    }
+    setCreatingExpense(true);
+    try {
+      const res = await fetch("/api/expenses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, amount, categoryId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? `Erreur (${res.status})`);
+      setExpenseName("");
+      setExpenseAmount("");
+      if (categories.length > 0) setExpenseCategoryId(categories[0].id);
+      showSuccess("Dépense créée avec succès !");
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : "Erreur inconnue");
+    } finally {
+      setCreatingExpense(false);
     }
   };
 
@@ -103,8 +142,8 @@ export default function CategoriesPage() {
       setEditingId(null);
       await fetchCategories();
       showSuccess("Catégorie mise à jour !");
-    } catch (err: any) {
-      showError(err.message);
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
       setUpdating(false);
     }
@@ -118,8 +157,8 @@ export default function CategoriesPage() {
       if (!res.ok) throw new Error(data.error);
       await fetchCategories();
       showSuccess("Catégorie supprimée !");
-    } catch (err: any) {
-      showError(err.message);
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
       setDeletingId(null);
     }
@@ -128,75 +167,129 @@ export default function CategoriesPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Catégories</h1>
-          <p className="text-gray-500 mt-1">Gérez vos catégories de dépenses</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Catégories et dépenses
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Gérez vos catégories et créez des dépenses
+          </p>
         </div>
 
-        {/* Notifications */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
-            <span>⚠️</span> {error}
-          </div>
-        )}
-        {success && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
-            <span>✅</span> {success}
+        {(error || success) && (
+          <div className="mb-4">
+            {error && <Alert variant="error">{error}</Alert>}
+            {success && <Alert variant="success">{success}</Alert>}
           </div>
         )}
 
-        {/* Create form */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
-          <h2 className="text-base font-semibold text-gray-700 mb-4">
-            Nouvelle catégorie
-          </h2>
-          <form onSubmit={handleCreate} className="flex gap-3">
-            <input
+        {/* Create expense */}
+        <Card title="Créer une dépense" className="mb-6">
+          <form onSubmit={handleCreateExpense} className="flex flex-col gap-4">
+            <Input
+              label="Nom"
               type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Nom de la catégorie..."
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={creating}
+              value={expenseName}
+              onChange={(e) => setExpenseName(e.target.value)}
+              placeholder="Nom de la dépense..."
+              disabled={creatingExpense}
             />
-            <button
+            <Input
+              label="Montant (€)"
+              type="number"
+              step="0.01"
+              min="0"
+              value={expenseAmount}
+              onChange={(e) => setExpenseAmount(e.target.value)}
+              placeholder="0.00"
+              disabled={creatingExpense}
+            />
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-700">
+                Catégorie
+              </label>
+              <select
+                value={expenseCategoryId}
+                onChange={(e) =>
+                  setExpenseCategoryId(
+                    e.target.value === "" ? "" : Number(e.target.value)
+                  )
+                }
+                className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                disabled={creatingExpense || categories.length === 0}
+              >
+                {categories.length === 0 ? (
+                  <option value="">Aucune catégorie</option>
+                ) : (
+                  categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+            <Button
               type="submit"
-              disabled={creating || !newName.trim()}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
+              disabled={
+                creatingExpense ||
+                !expenseName.trim() ||
+                !expenseAmount ||
+                Number(expenseAmount) < 0 ||
+                categories.length === 0
+              }
             >
-              {creating ? "Création..." : "Ajouter"}
-            </button>
+              {creatingExpense ? "Création..." : "Ajouter la dépense"}
+            </Button>
           </form>
-        </div>
+        </Card>
+
+        {/* Create category */}
+        <Card title="Nouvelle catégorie" className="mb-6">
+          <form onSubmit={handleCreateCategory} className="flex gap-3">
+            <div className="flex-1">
+              <Input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Nom de la catégorie..."
+                disabled={creating}
+              />
+            </div>
+            <div className="flex items-end">
+              <Button type="submit" disabled={creating || !newName.trim()}>
+                {creating ? "Création..." : "Ajouter"}
+              </Button>
+            </div>
+          </form>
+        </Card>
 
         {/* Categories list */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-700">
+        <Card
+          title={
+            <>
               Liste des catégories{" "}
               <span className="text-gray-400 font-normal text-sm">
                 ({categories.length})
               </span>
-            </h2>
-          </div>
-
+            </>
+          }
+        >
           {loading ? (
             <div className="py-16 text-center text-gray-400 text-sm">
               Chargement...
             </div>
           ) : categories.length === 0 ? (
             <div className="py-16 text-center text-gray-400 text-sm">
-              Aucune catégorie pour l'instant.
+              Aucune catégorie pour l&apos;instant.
             </div>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-gray-100 -mx-6">
               {categories.map((cat) => (
                 <li key={cat.id} className="px-6 py-4 flex items-center gap-4">
                   {editingId === cat.id ? (
-                    // Edit mode
                     <div className="flex flex-1 items-center gap-3">
-                      <input
+                      <Input
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
@@ -204,11 +297,11 @@ export default function CategoriesPage() {
                           if (e.key === "Enter") handleUpdate(cat.id);
                           if (e.key === "Escape") setEditingId(null);
                         }}
-                        autoFocus
-                        className="flex-1 border border-blue-400 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 border-blue-400"
                         disabled={updating}
                       />
                       <button
+                        type="button"
                         onClick={() => handleUpdate(cat.id)}
                         disabled={updating || !editName.trim()}
                         className="text-sm font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50"
@@ -216,6 +309,7 @@ export default function CategoriesPage() {
                         {updating ? "..." : "Enregistrer"}
                       </button>
                       <button
+                        type="button"
                         onClick={() => setEditingId(null)}
                         className="text-sm text-gray-400 hover:text-gray-600"
                       >
@@ -223,7 +317,6 @@ export default function CategoriesPage() {
                       </button>
                     </div>
                   ) : (
-                    // View mode
                     <>
                       <div className="flex-1">
                         <span className="text-sm font-medium text-gray-800">
@@ -238,12 +331,14 @@ export default function CategoriesPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <button
+                          type="button"
                           onClick={() => handleEdit(cat)}
                           className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
                         >
                           Modifier
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDelete(cat.id)}
                           disabled={deletingId === cat.id}
                           className="text-sm text-gray-500 hover:text-red-600 transition-colors disabled:opacity-50"
@@ -257,7 +352,7 @@ export default function CategoriesPage() {
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );
