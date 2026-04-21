@@ -1,7 +1,7 @@
 import "./globals.css";
 import Navbar from "./components/organisms/Navbar";
 import type { Metadata } from "next";
-
+import PwaRegister from "./sw-register";
 export const metadata: Metadata = {
   title: "DTracker – Suivi de dépenses minimaliste",
   description:
@@ -15,11 +15,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-<<<<<<< HEAD
-      <body className={`antialiased`}>
-=======
       <body className="antialiased bg-gray-50 text-gray-900">
->>>>>>> 5fa19bc248bc878a092270f2549df6be28185777
+        <PwaRegister />
         <Navbar />
         <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
       </body>
