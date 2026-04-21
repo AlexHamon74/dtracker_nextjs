@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Card from "../components/molecules/Card";
-import Alert from "../components/atoms/Alert";
 
 type Expense = {
   id: number;
@@ -16,7 +15,6 @@ type Expense = {
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchExpenses = async () => {
     try {
@@ -26,7 +24,6 @@ export default function ExpensesPage() {
       const data = await res.json();
       setExpenses(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
       setLoading(false);
     }
@@ -43,12 +40,6 @@ export default function ExpensesPage() {
           <h1 className="text-3xl font-bold text-gray-900">Mes dépenses</h1>
           <p className="text-gray-500 mt-1">Liste de vos dépenses</p>
         </div>
-
-        {error && (
-          <div className="mb-4">
-            <Alert variant="error">{error}</Alert>
-          </div>
-        )}
 
         <Card
           title={
