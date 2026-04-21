@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import MyLineChart from "./components/chart/MyLineChart";
-
-export default function Home() {
-  return (
-    <div>
-      <MyLineChart />
-=======
 export default function Home() {
   return (
     <div className="space-y-8">
@@ -15,8 +7,8 @@ export default function Home() {
         </h1>
         <p className="text-gray-600 max-w-xl">
           Une petite application expérimentale pour jouer avec des catégories,
-          des dépenses et quelques graphiques aléatoires. Rien de sérieux,
-          juste un terrain de jeu pour Next.js, Prisma et Chart.js.
+          des dépenses et quelques graphiques aléatoires. Rien de sérieux, juste
+          un terrain de jeu pour Next.js, Prisma et Chart.js.
         </p>
       </section>
 
@@ -31,9 +23,7 @@ export default function Home() {
           </p>
         </div>
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-700 mb-1">
-            Dépenses
-          </h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-1">Dépenses</h2>
           <p className="text-xs text-gray-500">
             Saisissez quelques montants fictifs pour tester les écrans.
           </p>
@@ -48,7 +38,6 @@ export default function Home() {
           </p>
         </div>
       </section>
->>>>>>> 5fa19bc248bc878a092270f2549df6be28185777
     </div>
   );
 }
