@@ -14,19 +14,11 @@ type Expense = {
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const fetchExpenses = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/expenses");
-      if (!res.ok) throw new Error("Erreur lors du chargement");
-      const data = await res.json();
-      setExpenses(data);
-    } catch (err: unknown) {
-    } finally {
-      setLoading(false);
-    }
+    const res = await fetch("/api/expenses");
+    const data = await res.json();
+    setExpenses(data);
   };
 
   useEffect(() => {
@@ -51,11 +43,7 @@ export default function ExpensesPage() {
             </>
           }
         >
-          {loading ? (
-            <div className="py-16 text-center text-gray-400 text-sm">
-              Chargement...
-            </div>
-          ) : expenses.length === 0 ? (
+          {expenses.length === 0 ? (
             <div className="py-16 text-center text-gray-400 text-sm">
               Aucune dépense pour l&apos;instant.
             </div>
